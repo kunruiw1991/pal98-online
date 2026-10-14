@@ -67,3 +67,8 @@ cd pal98-online
 python3 -m http.server 8080
 # Open http://localhost:8080 in Safari or Chrome
 ```
+
+
+## 吞食天地Ⅱ：诸葛孔明传（日文原版）
+
+新增独立网页入口：[直接游玩](https://kunruiw1991.github.io/pal98-online/tenchi2/) · [源码、操作和验证记录](./tenchi2/README.md)。支持键盘、触屏、手柄与本地存档导入导出。

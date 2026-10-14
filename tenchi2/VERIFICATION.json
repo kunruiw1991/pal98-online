@@ -1,0 +1,10 @@
+{
+  "romSha256": "2bc5970f8e2b6ddd0172e900b78d5234ed1919954cf00434a86ca18166a6f4bf",
+  "mapper": 4,
+  "frames": 843,
+  "audioSamples": 673309,
+  "titleFrameSha256": "93293c7de3d0d48dcd100d154e1d2eff4c56b5fd52f2a26fee2ea4440e37e9ae",
+  "saveStateBytes": 1026517,
+  "saveRestore": "identical after 60 frames",
+  "result": "PASS"
+}
