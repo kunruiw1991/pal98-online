@@ -1,0 +1,35 @@
+{
+  "game": "吞食天地Ⅱ：诸葛孔明传 日文原版",
+  "url": "https://kunruiw1991.github.io/pal98-online/tenchi2/",
+  "verifiedDate": "2026-10-14",
+  "deployment": {
+    "run": 38619180052,
+    "result": "success",
+    "gameCommit": "a52356770020e35ec05c847b8cc86042accbb4a8"
+  },
+  "browser": {
+    "environment": "Cloud Chrome",
+    "passed": [
+      "ROM download and SHA256 check",
+      "launch and original title/cutscene rendering",
+      "on-screen START input",
+      "pause and resume",
+      "manual save and restore",
+      "save persists across page reload",
+      "export downloads a JSON file"
+    ],
+    "limitation": "File chooser verification timed out in browser automation; UI import end-to-end and M3 Safari were not verified."
+  },
+  "saveHandlerIntegration": {
+    "result": "PASS",
+    "exportBytes": 1052106,
+    "checks": [
+      "actual app export handler produces valid JSON",
+      "actual app import handler restores CPU memory and stores manual save",
+      "wrong ROM hash rejected without changing progress",
+      "oversized input rejected without changing progress"
+    ],
+    "scope": "Headless handler integration; file chooser UI not covered"
+  },
+  "romSha256": "2bc5970f8e2b6ddd0172e900b78d5234ed1919954cf00434a86ca18166a6f4bf"
+}
