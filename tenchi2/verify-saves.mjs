@@ -1,0 +1,34 @@
+// Exercise the real page's export/import handlers with the real NES core.
+// DOM and IndexedDB adapters are in-memory test fixtures, not browser QA.
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {webcrypto} from 'node:crypto';
+const vendor={module:{exports:{}},exports:{}};vendor.exports=vendor.module.exports;
+vm.runInNewContext(fs.readFileSync(new URL('./jsnes.min.js',import.meta.url),'utf8'),vendor);
+const {NES,Controller}=vendor.module.exports;
+const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{disabled:true,textContent:'',style:{},classList:{remove(){}},addEventListener(){}});return elements.get(id);};
+const records=new Map();let instance,downloadUrl;
+const database={transaction(){const tx={};tx.objectStore=()=>({put(value,key){records.set(key,structuredClone(value));setImmediate(()=>tx.oncomplete?.());},get(key){const req={};setImmediate(()=>{req.result=structuredClone(records.get(key));req.onsuccess?.();});return req;}});return tx;}};
+const rom=fs.readFileSync(new URL('./doae2j.nes',import.meta.url));
+const scope={console,Blob,URL,Uint8Array,crypto:webcrypto,performance,confirm:()=>true,setInterval(){},setTimeout(){},ResizeObserver:class{observe(){}},window:{addEventListener(){}},indexedDB:{open(){const req={result:database};setImmediate(()=>req.onsuccess?.());return req;}},document:{getElementById:element,querySelectorAll:()=>[],addEventListener(){},createElement(){return{click(){downloadUrl=this.href;}};}},fetch:async()=>({ok:true,arrayBuffer:async()=>rom.buffer.slice(rom.byteOffset,rom.byteOffset+rom.byteLength)}),jsnes:{Controller,Browser:class{constructor(){instance=this;this.nes=new NES();this.keyboard={};}fitInParent(){}start(){}stop(){}}}};
+vm.runInNewContext(fs.readFileSync(new URL('./app.js',import.meta.url),'utf8'),scope);
+for(let i=0;i<100&&element('launch').disabled;i++)await new Promise(r=>setTimeout(r,10));
+assert.equal(element('launch').disabled,false);
+element('launch').onclick();for(let i=0;i<600;i++)instance.nes.frame();
+element('export').onclick();assert(downloadUrl?.startsWith('blob:'));
+const exported=await(await fetch(downloadUrl)).text();const exportedState=JSON.parse(exported);
+assert.equal(exportedState.format,'tenchi2-web-save');assert.equal(exportedState.engine,'jsnes-2.1.0');
+for(let i=0;i<100;i++)instance.nes.frame();
+const target={files:[{size:Buffer.byteLength(exported),text:async()=>exported}],value:'file'};
+await element('import').onchange({target});assert.equal(target.value,'');
+assert.deepEqual(Array.from(instance.nes.cpu.mem),exportedState.state.cpu.mem);
+assert.equal(records.get('manual').romSha256,exportedState.romSha256);
+assert(element('status').textContent.includes('已保存'));
+const before=JSON.stringify(instance.nes.toJSON());
+const wrong={...exportedState,romSha256:'wrong'};const invalid=JSON.stringify(wrong);
+await element('import').onchange({target:{files:[{size:invalid.length,text:async()=>invalid}],value:'file'}});
+assert(element('status').textContent.includes('格式不匹配'));assert.equal(JSON.stringify(instance.nes.toJSON()),before);
+await element('import').onchange({target:{files:[{size:17000000,text:async()=>exported}],value:'file'}});
+assert(element('status').textContent.includes('存档过大'));assert.equal(JSON.stringify(instance.nes.toJSON()),before);
+console.log(JSON.stringify({result:'PASS',exportBytes:Buffer.byteLength(exported),checks:['actual app export handler produces valid JSON','actual app import handler restores CPU memory and stores manual save','wrong ROM hash rejected without changing progress','oversized input rejected without changing progress'],scope:'Headless handler integration; file chooser UI not covered'},null,2));
