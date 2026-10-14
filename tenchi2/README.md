@@ -22,3 +22,12 @@
 `node verify.mjs` 使用页面实际部署的 `jsnes.min.js`：校验 ROM、运行 843 帧、生成标题画面及音频采样、按 START、导出再恢复状态，并断言恢复后 60 帧的完整状态与原运行完全一致。结果见 `VERIFICATION.json`。这不是通关测试，也不代表在每种设备上都已验证。
 
 本地可在仓库根目录运行 `python3 -m http.server 8080`，访问 `http://localhost:8080/tenchi2/`。浏览器 SHA256 和音频需要 HTTPS 或 localhost 安全环境。
+
+
+### 2026-10-14 线上验证
+
+GitHub Pages 部署成功。在 Chrome 中实际验证原版游戏启动、标题与剧情画面、屏幕 START、暂停继续、手动存档读取、刷新后存档保留，以及 JSON 存档实际下载。
+
+`node verify-saves.mjs` 测试页面实际导出/导入处理函数和真实 NES 核心：导出的 JSON 能恢复 CPU 内存并保存，错误 ROM 校验值及超大文件被拒绝，当前进度保留。结果和验证范围见 `WEB_VERIFICATION.json`。
+
+文件选择器自动化验证遇到工具超时，因此未完成浏览器内导入的全流程验证；也未在 M3 Safari 实机、触屏设备或真实手柄上测试。已实现这些控制方式，但不把实现当作实机验证。
