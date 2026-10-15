@@ -1,0 +1,15 @@
+{
+  "result": "PASS",
+  "checks": [
+    "migrate game SRAM from a legacy stopped-state snapshot",
+    "cold boot never resumes the legacy CPU position",
+    "manual snapshot is not displaced by newer automatic snapshots",
+    "automatic snapshot remains separately selectable",
+    "return-to-title retains all 8192 SRAM bytes and backs up full state",
+    "ROM advances and accepts START after return to title",
+    "in-game battery writes persist to IndexedDB and synchronous fallback",
+    "battery save survives a fresh app instance",
+    "manual snapshot remains unchanged"
+  ],
+  "scope": "Actual page handlers with real JSNES core; DOM/storage adapters are test fixtures"
+}
