@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-14 America/Los_Angeles",
+  "fixCommit": "c41f68080bbc8a701abe9def6c73ce1fae14fa4c",
+  "pagesRun": 38668287753,
+  "pagesConclusion": "success",
+  "browser": "Chrome",
+  "verified": [
+    "New return-to-title button successfully reboots ROM and reports preserved game record",
+    "Manual snapshot remains selected when newer automatic snapshot exists",
+    "Manual snapshot still present after browser reload",
+    "Return-to-title writes a separate backup snapshot"
+  ],
+  "nodeRegression": "SAVE_RECOVERY_VERIFICATION.json",
+  "limitations": [
+    "User-specific original save was not accessed",
+    "Exact in-game save then No dialogue route was not completed during this check",
+    "SRAM migration and reboot tested with a real registered game slot and actual NES core"
+  ],
+  "screenshot": "qa/save-recovery.jpg"
+}
