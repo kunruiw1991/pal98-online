@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-14 America/Los_Angeles",
+  "patchSha256": "665ad3baeecf4c8fdcbe3f7e96560e70a740c621e5ea60c59353893c0be2e259",
+  "targetRomSha256": "92e96a551a1b07cfb4b72852a2a23f52618e254f63a7b0aad5188a347cbfe66e",
+  "browser": "Chrome",
+  "verified": [
+    "Chinese patch applied and target SHA256 accepted before launch",
+    "Chinese original translation title rendered",
+    "Manual save and load reported success",
+    "Game continued after save restore and could be paused"
+  ],
+  "headless": {
+    "frames": 4443,
+    "saveRestore": "identical complete state after 60 frames",
+    "regression": "Expansion RAM mapped after reset/fromJSON; actual Chinese export/import handlers and 300 further frames pass"
+  },
+  "virusScan": {
+    "run": 38662600827,
+    "files": 6,
+    "infected": 0,
+    "limitations": "No detections is not an absolute safety guarantee"
+  },
+  "archive": "https://github.com/kunruiw1991/games-download-original/releases/tag/tenchi2-chinese-patch",
+  "limitations": [
+    "No full playthrough",
+    "M3 Safari not tested on hardware",
+    "Browser file chooser import still not verified"
+  ],
+  "screenshot": "qa/chinese-player.jpg"
+}
