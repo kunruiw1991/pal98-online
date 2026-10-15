@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-15",
+  "result": "PASS",
+  "functionalCommit": "d691dd2b02f6c6b8d8ee4e4d25ebcb4a11264065",
+  "pagesRun": 38671528149,
+  "pagesConclusion": "success",
+  "liveUrl": "https://kunruiw1991.github.io/pal98-online/tenchi2/",
+  "liveAppSHA256": "61434c402a92516680bee8b110d191aa9719badd629d4f0cfd790ce773bb8956",
+  "browserChecks": [
+    "New guide copy visible online",
+    "Chinese ROM starts and touch START opens registration menu",
+    "Pause changes status and continue restores running status",
+    "No game script errors observed; extension metadata errors excluded"
+  ],
+  "lifecycleChecks": "See IDLE_RESUME_VERIFICATION.json: real app handlers, real NES core, official FrameTimer, fixture visibility/audio; 50 switch cycles and one-hour timing gap passed",
+  "limitations": [
+    "Remote browser did not expose a usable foreground-tab switching capability; actual document-hidden/visible UI switching was not verified.",
+    "No M3 Safari or physical sleep/wake test."
+  ],
+  "screenshot": "qa/idle-resume.jpg"
+}
