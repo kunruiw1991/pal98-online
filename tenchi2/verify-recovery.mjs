@@ -30,7 +30,7 @@ function boot(records,mirror=new Map()){
   indexedDB:{open(){const request={result:db};setImmediate(()=>request.onsuccess?.());return request;}},
   document:{getElementById:element,querySelectorAll:()=>[],addEventListener(){},createElement:()=>({click(){}})},
   fetch:async url=>({ok:true,arrayBuffer:async()=>{const b=file(url.endsWith('.ips')?'zh-hans.ips':'doae2j.nes');return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);}}),
-  jsnes:{Controller,Browser:class{constructor(options){browser=this;this.nes=new NES({onBatteryRamWrite:options.onBatteryRamWrite});this.keyboard={};}start(){}stop(){}fitInParent(){}}}};
+  jsnes:{Controller,Browser:class{constructor(options){browser=this;this.nes=new NES({onBatteryRamWrite:options.onBatteryRamWrite});this.keyboard={};this._frameTimer={onAnimationFrame(){},generateFrame(){}};}start(){}stop(){}fitInParent(){}}}};
  vm.createContext(context);vm.runInContext(file('patch.js').toString(),context);vm.runInContext(file('app.js').toString(),context);
  return{element,context,timers,mirror,get nes(){return browser.nes;},async ready(){for(let i=0;i<100&&element('launch').disabled;i++)await new Promise(r=>setTimeout(r,10));assert(!element('launch').disabled);}};
 }

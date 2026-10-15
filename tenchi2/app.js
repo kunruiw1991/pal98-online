@@ -4,7 +4,7 @@ const ORIGINAL_HASH='2bc5970f8e2b6ddd0172e900b78d5234ed1919954cf00434a86ca18166a
 const HASH=JAPANESE?ORIGINAL_HASH:'92e96a551a1b07cfb4b72852a2a23f52618e254f63a7b0aad5188a347cbfe66e';
 const EDITION=JAPANESE?'日文原版':'中文汉化 · 同能网版';
 const $=id=>document.getElementById(id);
-let player,rom,running=false,ready=false,lastSave,batteryTimer;
+let player,rom,running=false,ready=false,lastSave,batteryTimer,resumeAfterHidden=false;
 const BATTERY_KEY='tenchi2-battery-'+HASH;
 const dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open(JAPANESE?'tenchi2-original':'tenchi2-chinese',1);request.onupgradeneeded=()=>request.result.createObjectStore('saves');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
 dbPromise.catch(()=>{});
@@ -12,8 +12,8 @@ async function store(key,value){const database=await dbPromise;return new Promis
 async function read(key){const database=await dbPromise;return new Promise((resolve,reject)=>{const request=database.transaction('saves').objectStore('saves').get(key);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}
 const message=text=>{$('status').textContent=text;};
 function release(){if(!player)return;for(let i=0;i<10;i++)player.nes.buttonUp(1,i);document.querySelectorAll('.pressed').forEach(b=>b.classList.remove('pressed'));}
-function pause(){if(!running)return;player.stop();running=false;release();$('pause').textContent='继续';message('已暂停');}
-function resume(){if(!ready||running)return;player.start();running=true;$('cover').hidden=true;$('cover').style.display='none';$('pause').textContent='暂停';message('游戏进行中 · '+EDITION);}
+function pause(){resumeAfterHidden=false;if(!running)return;player.stop();running=false;release();$('pause').textContent='继续';message('已暂停');}
+function resume(){if(!ready||running||document.hidden)return;resumeAfterHidden=false;release();player.start();running=true;$('cover').hidden=true;$('cover').style.display='none';$('pause').textContent='暂停';message('游戏进行中 · '+EDITION);}
 function snapshot(){return{format:'tenchi2-web-save',version:1,engine:'jsnes-2.1.0',romSha256:HASH,date:new Date().toISOString(),state:player.nes.toJSON()};}
 function validate(data){if(!data||data.format!=='tenchi2-web-save'||data.version!==1||data.engine!=='jsnes-2.1.0'||data.romSha256!==HASH||!Array.isArray(data.state?.cpu?.mem)||data.state.cpu.mem.length!==65536||!data.state.ppu||!data.state.mmap||!data.state.papu)throw Error('存档格式不匹配，请选择本网页导出的存档。');}
 const SAVE_KEYS=['manual','auto','before-restart'];
@@ -76,9 +76,45 @@ $('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await docume
 new ResizeObserver(()=>player?.fitInParent()).observe($('screen'));
 document.addEventListener('fullscreenchange',()=>player?.fitInParent());
 document.querySelectorAll('[data-key]').forEach(button=>{const code=jsnes.Controller['BUTTON_'+button.dataset.key];button.onpointerdown=event=>{event.preventDefault();if(!running)return;button.setPointerCapture(event.pointerId);button.classList.add('pressed');player.nes.buttonDown(1,code);};const up=event=>{event.preventDefault();button.classList.remove('pressed');player?.nes.buttonUp(1,code);};button.onpointerup=up;button.onpointercancel=up;button.onlostpointercapture=up;});
+// Hidden pages stop without changing a deliberate manual pause. Returning to
+// the page resumes the same CPU/RAM state, never reloads a save or cartridge.
+function background(){
+ if(!ready)return;
+ if(running){pause();resumeAfterHidden=true;save('auto',true);message('已暂时暂停，返回页面后自动继续');}
+ release();
+}
+function foreground(){
+ if(document.hidden||!ready)return;
+ if(resumeAfterHidden)resume();
+}
+function wakeAudio(){
+ if(document.hidden)return;foreground();
+ const audio=player?._speakers?.audioCtx;
+ if(running&&audio&&audio.state!=='running'&&audio.state!=='closed')audio.resume().catch(()=>{});
+}
 window.addEventListener('blur',release);
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&ready){save('auto',true);pause();}});
+window.addEventListener('focus',foreground);
+window.addEventListener('pageshow',foreground);
+window.addEventListener('pagehide',background);
+document.addEventListener('visibilitychange',()=>document.hidden?background():foreground());
+// A gesture also unlocks audio after a browser/OS suspension. Capture runs
+// before keyboard/touch input so the first input reaches the resumed game.
+document.addEventListener('keydown',wakeAudio,true);
+document.addEventListener('pointerdown',wakeAudio,true);
+function guardFrameTimer(browser){
+ const timer=browser._frameTimer;
+ const animate=timer.onAnimationFrame,generate=timer.generateFrame.bind(timer);
+ timer.onAnimationFrame=time=>{
+  if(!timer.running)return;
+  // JSNES 2.1.0 schedules one timeout per missed frame. After system sleep
+  // this can enqueue thousands of callbacks and make input unresponsive.
+  if(timer.lastFrameTime&&time-timer.lastFrameTime>250)timer.lastFrameTime=false;
+  animate(time);
+ };
+ timer.generateFrame=()=>{if(timer.running)generate();};
+}
+
 window.addEventListener('pagehide',()=>{if(ready){persistBattery().catch(()=>{});save('auto',true);}});
 setInterval(()=>{if(running)save('auto',true);},60000);
-(async()=>{try{const response=await fetch('doae2j.nes');if(!response.ok)throw Error('游戏数据下载失败（'+response.status+'）');rom=new Uint8Array(await response.arrayBuffer());const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',rom)),b=>b.toString(16).padStart(2,'0')).join('');if(digest!==ORIGINAL_HASH)throw Error('游戏数据校验失败，请刷新后重试。');if(!JAPANESE){const patchResponse=await fetch('zh-hans.ips');if(!patchResponse.ok)throw Error('汉化补丁下载失败');rom=applyIps(rom,await patchResponse.arrayBuffer());const zhDigest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',rom)),b=>b.toString(16).padStart(2,'0')).join('');if(zhDigest!==HASH)throw Error('汉化结果校验失败');}player=new jsnes.Browser({container:$('screen'),onBatteryRamWrite:batteryWritten,onError:e=>{running=false;release();$('pause').textContent='继续';message('游戏运行错误：'+e.message);}});let recovered;try{recovered=await recoverBattery();}catch(e){}loadCartridge(recovered?.ram);player.keyboard.keys={13:[1,3],17:[1,2],37:[1,6],38:[1,4],39:[1,7],40:[1,5],88:[1,0],90:[1,1]};ready=true;for(const id of ['launch','pause','save','export','import','restart'])$(id).disabled=false;$('loading').textContent='游戏数据已校验 · 键盘 / 触屏 / 手柄';message('已就绪 · 点击开始游戏');try{await updateDate();if(lastSave||recovered)$('launch').textContent='进入游戏 →';}catch(e){$('savedate').textContent='浏览器存储不可用；可导出存档备份。';}}catch(e){$('loading').textContent=e.message;message('载入失败，请刷新重试');}})();
+(async()=>{try{const response=await fetch('doae2j.nes');if(!response.ok)throw Error('游戏数据下载失败（'+response.status+'）');rom=new Uint8Array(await response.arrayBuffer());const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',rom)),b=>b.toString(16).padStart(2,'0')).join('');if(digest!==ORIGINAL_HASH)throw Error('游戏数据校验失败，请刷新后重试。');if(!JAPANESE){const patchResponse=await fetch('zh-hans.ips');if(!patchResponse.ok)throw Error('汉化补丁下载失败');rom=applyIps(rom,await patchResponse.arrayBuffer());const zhDigest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',rom)),b=>b.toString(16).padStart(2,'0')).join('');if(zhDigest!==HASH)throw Error('汉化结果校验失败');}player=new jsnes.Browser({container:$('screen'),onBatteryRamWrite:batteryWritten,onError:e=>{running=false;release();$('pause').textContent='继续';message('游戏运行错误：'+e.message);}});guardFrameTimer(player);let recovered;try{recovered=await recoverBattery();}catch(e){}loadCartridge(recovered?.ram);player.keyboard.keys={13:[1,3],17:[1,2],37:[1,6],38:[1,4],39:[1,7],40:[1,5],88:[1,0],90:[1,1]};ready=true;for(const id of ['launch','pause','save','export','import','restart'])$(id).disabled=false;$('loading').textContent='游戏数据已校验 · 键盘 / 触屏 / 手柄';message('已就绪 · 点击开始游戏');try{await updateDate();if(lastSave||recovered)$('launch').textContent='进入游戏 →';}catch(e){$('savedate').textContent='浏览器存储不可用；可导出存档备份。';}}catch(e){$('loading').textContent=e.message;message('载入失败，请刷新重试');}})();
 

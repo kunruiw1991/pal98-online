@@ -1,0 +1,14 @@
+{
+  "result": "PASS",
+  "checks": [
+    "no automatic start before first launch",
+    "hidden page pauses and blocks stale queued frames",
+    "return resumes exact CPU/PPU/RAM state without loading ROM or snapshots",
+    "50 repeated tab switches resume without duplicate focus starts",
+    "manual pause survives tab switching",
+    "one-hour foreground animation gap produces no timeout backlog",
+    "first input wakes suspended audio",
+    "pageshow recovers suspended page only when visible"
+  ],
+  "scope": "Actual app lifecycle handlers and official JSNES 2.1.0 FrameTimer with real Chinese NES core; browser visibility/audio adapters are fixtures"
+}
