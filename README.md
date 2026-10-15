@@ -2,19 +2,19 @@
 
 🎮 **Play Directly in Browser (macOS Safari & Chrome, Zero Installation):**
 - **Live Web Player (GitHub Pages):** [https://kunruiw1991.github.io/pal98-online/](https://kunruiw1991.github.io/pal98-online/)
-- **Online WebAssembly Source & Chunks:** [`online/`](https://github.com/kunruiw1991/pal98-rouqing/tree/main/online) (also mirrored at [kunruiw1991/pal98-online](https://github.com/kunruiw1991/pal98-online))
-- **Original Archive Directories:** [`Dos_98/`](https://github.com/kunruiw1991/pal98-rouqing/tree/main/Dos_98) · [`Win98/`](https://github.com/kunruiw1991/pal98-rouqing/tree/main/Win98) · [`Walkthrough/`](https://github.com/kunruiw1991/pal98-rouqing/tree/main/Walkthrough)
+- **Original Desktop Archive Directories:** [`archive/Dos_98/`](./archive/Dos_98) · [`archive/Win98/`](./archive/Win98)
+- **Standalone Launchers & Complete ZIPs (Win/Mac/Linux/Android):** [Releases `v1.0-pal98-original`](https://github.com/kunruiw1991/pal98-online/releases/tag/v1.0-pal98-original)
 
 ---
 
 ## ✨ Key Features of the Online WebAssembly Edition (`v3.6`)
 
 1. **100% Browser Sandbox (No Unsigned macOS Binary Required)**
-   - Runs natively in macOS Safari and Chrome via a custom-patched **SDLPal WebAssembly (`sdlpal.wasm`)** build (`SDLPal v3.0.2025.0616` + `SDL3` + `emsdk 4.0.7`, C patches in [`engine/`](./online/engine)) with OPL2 RIX music and sound effects.
+   - Runs natively in macOS Safari and Chrome via a custom-patched **SDLPal WebAssembly (`sdlpal.wasm`)** build (`SDLPal v3.0.2025.0616` + `SDL3` + `emsdk 4.0.7`, C patches in [`engine/`](./engine)) with OPL2 RIX music and sound effects.
    - Strict `640×400` (`16:10`) WebGL framebuffer lock for crisp fullscreen (`⛶ Fullscreen`) and clean `Esc` exit without viewport cropping.
 
 2. **8-Part Chunked Streaming & Instant `IndexedDB` Cache (`chunks/`)**
-   - Game data (`17.76 MB` compressed / `30.05 MB` uncompressed, 25 files) is split into **8 small byte-slice HTTP chunks (`chunks/pal98_data.part00.bin` – `part07.bin`, `≤ 2.34 MB` each)** verified against SHA-256 in [`chunks/manifest.json`](./online/chunks/manifest.json).
+   - Game data (`17.76 MB` compressed / `30.05 MB` uncompressed, 25 files) is split into **8 small byte-slice HTTP chunks (`chunks/pal98_data.part00.bin` – `part07.bin`, `≤ 2.34 MB` each)** verified against SHA-256 in [`chunks/manifest.json`](./chunks/manifest.json).
    - Streams in parallel on your first visit, unpacks into Emscripten's `IDBFS` (`/data/`), and boots from local `IndexedDB` cache (`0 MB` network download) on every subsequent visit.
 
 3. **Pre-Launch Language Selection (English / 简体中文 / 繁體中文)**
@@ -56,6 +56,15 @@
 | **Shop & Save** | `Enter` (in Shop) | Open Item Info & Quantity Selector Card |
 | | `◄ ►` / `▲ ▼` (in Shop) | Adjust purchase quantity `±1` / `±10` |
 | | `⚡ Quick Save` | Save immediately to `Slot 5 (Auto 5 / 自动档)` |
+
+---
+
+## 💾 Original Desktop Archives & Standalone Launchers
+
+In addition to the WebAssembly online player, this repository archives the complete original desktop releases:
+- **`archive/Win98/`**: Complete 仙剑奇侠传 98柔情篇 Windows 98 edition (`PAL.EXE`, cutscenes `1.avi`..`6.avi`, CD audio, `DATA.MKF`, `FBP.MKF`, `FIRE.MKF`, `GOP.MKF`, `MAP.MKF`, `MGO.MKF`, `MUS.MKF`, `RGM.MKF`, `SSS.MKF`).
+- **`archive/Dos_98/`**: DOS / SDLPal data files with the community 25-bug-fix script set.
+- **Standalone Downloads**: Available on [Releases `v1.0-pal98-original`](https://github.com/kunruiw1991/pal98-online/releases/tag/v1.0-pal98-original) (`pal98-win98-original.zip`, `pal98-dos-sdlpal.zip`, and cross-platform native SDLPal launchers for Windows, macOS `.dmg`, Linux `.AppImage`, and Android `.apk`).
 
 ---
 
