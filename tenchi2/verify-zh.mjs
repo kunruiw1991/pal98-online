@@ -23,6 +23,6 @@ for(let i=0;i<3600;i++)nes.frame();
 fs.writeFileSync(new URL('./chinese-story.rgba',import.meta.url),Buffer.from(frame.flatMap(v=>[v&255,(v>>8)&255,(v>>16)&255,255])));
 const state=JSON.parse(JSON.stringify(nes.toJSON()));assert(Array.isArray(state.cpu.mem));assert.equal(state.cpu.mem.length,65536);
 for(let i=0;i<60;i++)nes.frame();const expected=JSON.stringify(nes.toJSON());
-const other=new NES();other.loadROM(rom); patchScope.enableTranslationRam(other);other.fromJSON(state);for(let i=0;i<60;i++)other.frame();
+const other=new NES();other.loadROM(rom); patchScope.enableTranslationRam(other);other.fromJSON(state);assert.equal(other.mmap.load(0x5000),other.cpu.mem[0x5000],"Translation RAM must survive save restoration");for(let i=0;i<60;i++)other.frame();
 assert.equal(JSON.stringify(other.toJSON()),expected,'Save restore must resume identical emulation state');
 console.log(JSON.stringify({romSha256:crypto.createHash('sha256').update(rom).digest('hex'),mapper:4,frames,audioSamples:samples,titleFrameSha256:title,saveStateBytes:Buffer.byteLength(JSON.stringify(state)),saveRestore:'identical after 60 frames',result:'PASS'},null,2));

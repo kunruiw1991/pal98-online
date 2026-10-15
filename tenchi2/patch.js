@@ -17,4 +17,12 @@ function applyIps(original,patch){
 // JSNES Mapper 4 treats that area as open bus by default. Keep the adapter
 // specific to this verified ROM; CPU memory already serializes the RAM.
 // Reference: FCEUX src/boards/mmc3.cpp, M195Power / Mapper198_Init.
-function enableTranslationRam(nes){const load=nes.mmap.load.bind(nes.mmap);nes.mmap.load=address=>address>=0x5000&&address<=0x5fff?nes.cpu.mem[address]:load(address);}
+function enableTranslationRam(nes){
+ if(nes.rom.translationRamEnabled)return;
+ const decorate=mapper=>{const load=mapper.load.bind(mapper);mapper.load=address=>address>=0x5000&&address<=0x5fff?nes.cpu.mem[address]:load(address);return mapper;};
+ // fromJSON/reset creates a fresh mapper; apply the same mapping every time.
+ const create=nes.rom.createMapper.bind(nes.rom);
+ nes.rom.createMapper=()=>decorate(create());
+ nes.rom.translationRamEnabled=true;
+ decorate(nes.mmap);
+}

@@ -11,8 +11,8 @@ const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id
 const records=new Map();let instance,downloadUrl;
 const database={transaction(){const tx={};tx.objectStore=()=>({put(value,key){records.set(key,structuredClone(value));setImmediate(()=>tx.oncomplete?.());},get(key){const req={};setImmediate(()=>{req.result=structuredClone(records.get(key));req.onsuccess?.();});return req;}});return tx;}};
 const rom=fs.readFileSync(new URL('./doae2j.nes',import.meta.url));
-const scope={URLSearchParams,location:{search:"?lang=ja"},console,Blob,URL,Uint8Array,crypto:webcrypto,performance,confirm:()=>true,setInterval(){},setTimeout(){},ResizeObserver:class{observe(){}},window:{addEventListener(){}},indexedDB:{open(){const req={result:database};setImmediate(()=>req.onsuccess?.());return req;}},document:{getElementById:element,querySelectorAll:()=>[],addEventListener(){},createElement(){return{click(){downloadUrl=this.href;}};}},fetch:async()=>({ok:true,arrayBuffer:async()=>rom.buffer.slice(rom.byteOffset,rom.byteOffset+rom.byteLength)}),jsnes:{Controller,Browser:class{constructor(){instance=this;this.nes=new NES();this.keyboard={};}fitInParent(){}start(){}stop(){}}}};
-vm.runInNewContext(fs.readFileSync(new URL('./app.js',import.meta.url),'utf8'),scope);
+const scope={URLSearchParams,location:{search:process.env.VERIFY_LANGUAGE==="zh"?"?lang=zh":"?lang=ja"},console,Blob,URL,Uint8Array,crypto:webcrypto,performance,confirm:()=>true,setInterval(){},setTimeout(){},ResizeObserver:class{observe(){}},window:{addEventListener(){}},indexedDB:{open(){const req={result:database};setImmediate(()=>req.onsuccess?.());return req;}},document:{getElementById:element,querySelectorAll:()=>[],addEventListener(){},createElement(){return{click(){downloadUrl=this.href;}};}},fetch:async url=>({ok:true,arrayBuffer:async()=>{const b=url.endsWith(".ips")?fs.readFileSync(new URL("./zh-hans.ips",import.meta.url)):rom;return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);}}),jsnes:{Controller,Browser:class{constructor(){instance=this;this.nes=new NES();this.keyboard={};}fitInParent(){}start(){}stop(){}}}};
+vm.createContext(scope);vm.runInContext(fs.readFileSync(new URL('./patch.js',import.meta.url),'utf8'),scope);vm.runInContext(fs.readFileSync(new URL('./app.js',import.meta.url),'utf8'),scope);
 for(let i=0;i<100&&element('launch').disabled;i++)await new Promise(r=>setTimeout(r,10));
 assert.equal(element('launch').disabled,false);
 element('launch').onclick();for(let i=0;i<600;i++)instance.nes.frame();
@@ -23,7 +23,7 @@ for(let i=0;i<100;i++)instance.nes.frame();
 const target={files:[{size:Buffer.byteLength(exported),text:async()=>exported}],value:'file'};
 await element('import').onchange({target});assert.equal(target.value,'');
 assert.deepEqual(Array.from(instance.nes.cpu.mem),exportedState.state.cpu.mem);
-assert.equal(records.get('manual').romSha256,exportedState.romSha256);
+const record=records.get('manual');assert.equal(record.romSha256,exportedState.romSha256);if(process.env.VERIFY_LANGUAGE==='zh'){const bus=instance.nes.cpu.dataBus;instance.nes.cpu.dataBus=instance.nes.cpu.mem[0x5000]^255;assert.equal(instance.nes.mmap.load(0x5000),instance.nes.cpu.mem[0x5000]);instance.nes.cpu.dataBus=bus;for(let i=0;i<300;i++)instance.nes.frame();}
 assert(element('status').textContent.includes('已保存'));
 const before=JSON.stringify(instance.nes.toJSON());
 const wrong={...exportedState,romSha256:'wrong'};const invalid=JSON.stringify(wrong);
